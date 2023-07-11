@@ -23,15 +23,12 @@ def resize_image(image, height, width):
 
 def convert_to_gray(image):
     return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-
-def get_canny_edge(image):
-    return cv2.Canny(image, 100, 200)
     
 def preprocess_image(image):
     gray = convert_to_gray(image)
-    # equa = get_equalize_adapt(gray)
-    # blur = get_blur(gray)
-    # show_image("bn", blur)
+    gray = get_equalize_adapt(gray)
+    gray = get_blur(gray)
+    show_image("iufwn", gray)
     edge = get_edge(gray)
     show_image("hellow", edge)
     return edge
@@ -45,8 +42,7 @@ def get_blur(image):
     # d: Diameter of each pixel neighborhood.
     # sigmaColor: Value of sigma in the color space. The greater the value, the colors farther to each other will start to get mixed.
     # sigmaSpace: Value of sigma in the coordinate space. The greater its value, the more further pixels will mix together, given that their colors lie within the sigmaColor range.
-    # return cv2.bilateralFilter(image, 25, 85, 75)
-    return image - cv2.GaussianBlur(image, (21, 21), 3)+127
+    return cv2.bilateralFilter(image, 25, 75, 75)
 
 def get_equalize_adapt(image):
     equalized = equalize_adapthist(image, kernel_size=None, clip_limit=0.01, nbins=256)
@@ -56,9 +52,10 @@ def get_threshold(image):
     return cv2.threshold(image, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
 
 def get_edge(gray_img):
-    # canny = get_canny_edge(gray_img)
-    # show_image("bn", canny)
-    return cv2.Laplacian(gray_img, -1, ksize=3)
+    img_sobelx = cv2.Sobel(gray_img, -5, 1, 0, ksize=1)
+    img_sobely = cv2.Sobel(gray_img, -5, 0, 1, ksize=1)                  
+    img_sobel = cv2.addWeighted(img_sobelx, 0.5, img_sobely, 0.5, 0)
+    return img_sobel
 
 def get_contours(image):
     print("[Console] Finding contours")
@@ -115,7 +112,7 @@ def get_diff_filled(image, diff_image, minDiffArea):
         
 # Main
 first_img = get_image("./images/real/1.jpg")
-second_img = get_image("./images/real/2.jpg")
+second_img = get_image("./images/real/1_special.jpg")
 first_img = resize_image(first_img, 1280, 720)[1]
 second_img = resize_image(second_img, 1280, 720)[1]
 
