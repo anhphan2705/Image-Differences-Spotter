@@ -30,11 +30,11 @@ def get_canny_edge(image):
 def preprocess_image(image):
     gray = convert_to_gray(image)
     # equa = get_equalize_adapt(gray)
-    blur = get_blur(gray)
-    show_image("bn", blur)
-    canny = get_canny_edge(blur)
-    # show_image("bn", canny)
-    return canny
+    # blur = get_blur(gray)
+    # show_image("bn", blur)
+    edge = get_edge(gray)
+    show_image("hellow", edge)
+    return edge
 
 def convert_to_cv2_format(image):
     # Convert any dtype back to cv2 readable
@@ -54,6 +54,11 @@ def get_equalize_adapt(image):
 
 def get_threshold(image):
     return cv2.threshold(image, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
+
+def get_edge(gray_img):
+    # canny = get_canny_edge(gray_img)
+    # show_image("bn", canny)
+    return cv2.Laplacian(gray_img, -1, ksize=3)
 
 def get_contours(image):
     print("[Console] Finding contours")
