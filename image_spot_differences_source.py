@@ -5,85 +5,141 @@ import numpy as np
 
 
 def get_image(directory):
+    '''
+    Loads and returns an image from the specified directory.
+
+    Parameters:
+        directory (str): The directory path of the image file.
+
+    Returns:
+        numpy.ndarray: The loaded image.
+    '''
     print("[Console] Getting image")
     return cv2.imread(directory)
 
 
 def show_image(header, image):
+    '''
+    Displays an image in a new window.
+
+    Parameters:
+        header (str): The window title/header.
+        image (numpy.ndarray): The image to be displayed.
+    '''
     print("[Console] Showing image")
     cv2.imshow(header, image)
     cv2.waitKey()
 
 
 def write_image(directory, image):
+    '''
+    Saves an image to the specified directory.
+
+    Parameters:
+        directory (str): The directory path to save the image.
+        image (numpy.ndarray): The image to be saved.
+    '''
     print("[Console] Saving image")
     cv2.imwrite(directory, image)
 
 
 def resize_image(image, height, width):
+    '''
+    Resizes an image to the specified dimensions.
+
+    Parameters:
+        image (numpy.ndarray): The image to be resized.
+        height (int): The desired height of the resized image.
+        width (int): The desired width of the resized image.
+
+    Returns:
+        tuple: A tuple containing the new dimensions (height, width) and the resized image.
+    '''
     print("[Console] Resizing image to 720p")
     dim = (height, width)
     return dim, cv2.resize(image, dim, interpolation=cv2.INTER_AREA)
 
 
 def convert_to_gray(image):
-    ''' Convert from BGR to GRAY'''
+    '''
+    Converts an image from BGR color space to grayscale.
+
+    Parameters:
+        image (numpy.ndarray): The input image in BGR color space.
+
+    Returns:
+        numpy.ndarray: The grayscale image.
+    '''
     return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
 
 def convert_to_cv2_format(image):
-    '''Convert any dtype back to cv2 readable image array'''
+    '''
+    Converts an image with any data type to a format readable by OpenCV (BGR, uint8).
+
+    Parameters:
+        image (numpy.ndarray): The input image with any data type.
+
+    Returns:
+        numpy.ndarray: The image converted to OpenCV readable format (BGR, uint8).
+    '''
     image = (image * 255).astype("uint8")
     return image
 
 
 def get_blur(image, d=30, sigColor=80, sigSpace=80):
-    ''' Bilateral Filter Blur
-    -----
-    Notes: 
-    Blur unimportant details and leave the edges
-    -----
-    Param: Adjust if needed
-        image:      Input image
-        d:          Diameter of each pixel neighborhood.
-        sigColor:   Value of sigma in the color space. The greater the value, the colors farther to each other will start to get mixed.
-        sigSpace:   Value of sigma in the coordinate space. The greater its value, the more further pixels will mix together, given that their colors lie within the sigmaColor range.
+    '''
+    Applies a bilateral filter blur to an image.
+
+    Parameters:
+        image (numpy.ndarray): The input image.
+        d (int): Diameter of each pixel neighborhood.
+        sigColor (float): Value of sigma in the color space.
+        sigSpace (float): Value of sigma in the coordinate space.
+
+    Returns:
+        numpy.ndarray: The blurred image.
     '''
     return cv2.bilateralFilter(image, d, sigColor, sigSpace)
 
 
 def get_equalize_adapt(image, c_limit=0.1):
-    ''' Contrast Limited Adaptive Histogram Equalization (CLAHE)
-    -----
-    Notes: 
-    An algorithm for local contrast enhancement, that uses histograms computed over different tile regions of the image. Local details can therefore be enhanced even in regions that are darker or lighter than most of the image.
-    -----
-    Param:
-        image:      input image
-        c_limit:    Clipping limit, normalized between 0 and 1 (higher values give more contrast).
-    -----
-    Return
-        equalized:  an image that has it contrast adjusted    
+    '''
+    Applies Contrast Limited Adaptive Histogram Equalization (CLAHE) to enhance the contrast of an image.
+
+    Parameters:
+        image (numpy.ndarray): The input image.
+        c_limit (float): Clipping limit, normalized between 0 and 1.
+
+    Returns:
+        numpy.ndarray: The image with adjusted contrast.
     '''
     equalized = equalize_adapthist(image, kernel_size=None, clip_limit=c_limit, nbins=256)
     return convert_to_cv2_format(equalized)
 
 
 def get_threshold(image):
+    '''
+    Applies a binary thresholding operation to convert an image to a binary form.
+
+    Parameters:
+        image (numpy.ndarray): The input image.
+
+    Returns:
+        numpy.ndarray: The binary thresholded image.
+    '''
     return cv2.threshold(image, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
 
 
 def get_edge(gray_img):
-    ''' Sobel Edge Detection
-    -----
-    Notes: 
-    Edge detection involves mathematical methods to find points in an image where the brightness of pixel intensities changes distinctly
-    -----
-    Param:
-        gray_image: input an image in gray scale
-    -----
-    Return:
-        img_sobel:  an image in np.array that has been edge detected through sobel
+    '''
+    Detects edges in a grayscale image using the Sobel edge detection algorithm.
+
+    Parameters:
+        gray_img (numpy.ndarray): The input grayscale image.
+
+    Returns:
+        numpy.ndarray: The edge-detected image.
     '''
     img_sobelx = cv2.Sobel(gray_img, -1, 1, 0, ksize=1)
     img_sobely = cv2.Sobel(gray_img, -1, 0, 1, ksize=1)
@@ -92,6 +148,15 @@ def get_edge(gray_img):
 
 
 def get_contours(image):
+    '''
+    Finds contours in a binary image.
+
+    Parameters:
+        image (numpy.ndarray): The input binary image.
+
+    Returns:
+        list: A list of contours found in the image.
+    '''
     print("[Console] Finding contours")
     threshold_img = get_threshold(image)
     contours = cv2.findContours(
@@ -102,69 +167,101 @@ def get_contours(image):
 
 
 def get_diff_mask(image, diff_image, minDiffArea):
+    '''
+    Generates a mask image highlighting the differences between two images.
+
+    Parameters:
+        image (numpy.ndarray): The input image.
+        diff_image (numpy.ndarray): The difference image between two images.
+        minDiffArea (int): The minimum contour area threshold for considering a difference.
+
+    Returns:
+        numpy.ndarray: The mask image with differences marked.
+    '''
     mask = np.zeros(image.shape, dtype="uint8")
     contours = get_contours(diff_image)
-    # Multiple objects in a contours
     for c in contours:
         area = cv2.contourArea(c)
-        # For any object that has a contour area > minDiffArea (40 pixel for smaller details)
         if area > minDiffArea:
-            # Mark it
             cv2.drawContours(mask, [c], 0, (255, 255, 255), -1)
     return mask
 
 
 def get_diff_rect(image, diff_image, minDiffArea):
+    '''
+    Draws rectangles around the differences in an image.
+
+    Parameters:
+        image (numpy.ndarray): The input image.
+        diff_image (numpy.ndarray): The difference image between two images.
+        minDiffArea (int): The minimum contour area threshold for considering a difference.
+
+    Returns:
+        numpy.ndarray: The image with rectangles drawn around the differences.
+    '''
     print("[Console] Drawing rectangle around the differences")
     img = image.copy()
     contours = get_contours(diff_image)
-    # Multiple objects in a contours
     for c in contours:
         area = cv2.contourArea(c)
-        # For any object that has a contour area > minDiffArea (40 pixel for smaller details)
         if area > minDiffArea:
-            # Mark it
             x, y, w, h = cv2.boundingRect(c)
             cv2.rectangle(img, (x, y), (x + w, y + h), (36, 255, 12), 2)
     return img
 
 
 def get_diff_filled(image, diff_image, minDiffArea):
+    '''
+    Fills the differences in an image with a specific color.
+
+    Parameters:
+        image (numpy.ndarray): The input image.
+        diff_image (numpy.ndarray): The difference image between two images.
+        minDiffArea (int): The minimum contour area threshold for considering a difference.
+
+    Returns:
+        numpy.ndarray: The image with differences filled.
+    '''
     contours = get_contours(diff_image)
-    # Multiple objects in a contours
     for c in contours:
         area = cv2.contourArea(c)
-        # For any object that has a contour area > minDiffArea (40 pixel for smaller details)
         if area > minDiffArea:
-            # Mark it
             cv2.drawContours(image, [c], 0, (0, 255, 0), -1)
     return image
 
 
-def get_structural_simlarity(first_image, second_image):
+def get_structural_similarity(first_image, second_image):
+    '''
+    Calculates the structural similarity between two images.
+
+    Parameters:
+        first_image (numpy.ndarray): The first input image.
+        second_image (numpy.ndarray): The second input image.
+
+    Returns:
+        float: The structural similarity index between the two images.
+        numpy.ndarray: The difference image highlighting the dissimilarities.
+    '''
     print("[Console] Calculating differences")
-    # Compare
     (score, diff_img) = structural_similarity(first_image, second_image, full=True)
-    # Convert return format to cv2 readable
     diff_img = convert_to_cv2_format(diff_img)
     print("[Console] Similarity score of {:.4f}%".format(score * 100))
     return score, diff_img
 
 
 def preprocess_image(image, gray=True, contrast=False, blur=False, edge=False):
-    ''' Pre-process Image
-    -----
-    Notes: 
-    Provide methods to prepare image for further examination
-    -----
-    Param:
-        gray:       Get the image in gray scale
-        contrast:   Adjust image's contrast
-        blur:       Blur image
-        edge:       Showing edges instead of full details
-    -----
-    Return:
-        image:      Processed image
+    '''
+    Preprocesses an image by applying various image processing techniques.
+
+    Parameters:
+        image (numpy.ndarray): The input image to be preprocessed.
+        gray (bool): Flag indicating whether to convert the image to grayscale (default: True).
+        contrast (bool): Flag indicating whether to adjust the contrast of the image (default: False).
+        blur (bool): Flag indicating whether to apply a blur to the image (default: False).
+        edge (bool): Flag indicating whether to detect edges in the image (default: False).
+
+    Returns:
+        numpy.ndarray: The preprocessed image.
     '''
     if gray:
         image = convert_to_gray(image)
@@ -218,7 +315,7 @@ second_pre = preprocess_image(
 )
 
 # Compare and get the result
-score, diff_img = get_structural_simlarity(first_pre, second_pre)
+score, diff_img = get_structural_similarity(first_pre, second_pre)
 
 # Marking the differences
 first_rect = get_diff_rect(first_img, diff_img, 750)
