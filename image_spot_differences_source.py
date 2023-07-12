@@ -27,26 +27,45 @@ def resize_image(image, height, width):
 
 
 def convert_to_gray(image):
+    ''' Convert from BGR to GRAY'''
     return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
 
 def convert_to_cv2_format(image):
-    # Convert any dtype back to cv2 readable
+    '''Convert any dtype back to cv2 readable image array'''
     image = (image * 255).astype("uint8")
     return image
 
 
-def get_blur(image):
-    # d: Diameter of each pixel neighborhood.
-    # sigmaColor: Value of sigma in the color space. The greater the value, the colors farther to each other will start to get mixed.
-    # sigmaSpace: Value of sigma in the coordinate space. The greater its value, the more further pixels will mix together, given that their colors lie within the sigmaColor range.
-    return cv2.bilateralFilter(image, 30, 80, 80)
+def get_blur(image, d=30, sigColor=80, sigSpace=80):
+    ''' Bilateral Filter Blur
+    -----
+    Notes: 
+    Blur unimportant details and leave the edges
+    -----
+    Param: Adjust if needed
+        image:      Input image
+        d:          Diameter of each pixel neighborhood.
+        sigColor:   Value of sigma in the color space. The greater the value, the colors farther to each other will start to get mixed.
+        sigSpace:   Value of sigma in the coordinate space. The greater its value, the more further pixels will mix together, given that their colors lie within the sigmaColor range.
+    '''
+    return cv2.bilateralFilter(image, d, sigColor, sigSpace)
 
 
-def get_equalize_adapt(image):
-    # Contrast Limited Adaptive Histogram Equalization (CLAHE).
-    # An algorithm for local contrast enhancement, that uses histograms computed over different tile regions of the image. Local details can therefore be enhanced even in regions that are darker or lighter than most of the image.
-    equalized = equalize_adapthist(image, kernel_size=None, clip_limit=0.01, nbins=256)
+def get_equalize_adapt(image, c_limit=0.1):
+    ''' Contrast Limited Adaptive Histogram Equalization (CLAHE)
+    -----
+    Notes: 
+    An algorithm for local contrast enhancement, that uses histograms computed over different tile regions of the image. Local details can therefore be enhanced even in regions that are darker or lighter than most of the image.
+    -----
+    Param:
+        image:      input image
+        c_limit:    Clipping limit, normalized between 0 and 1 (higher values give more contrast).
+    -----
+    Return
+        equalized:  an image that has it contrast adjusted    
+    '''
+    equalized = equalize_adapthist(image, kernel_size=None, clip_limit=c_limit, nbins=256)
     return convert_to_cv2_format(equalized)
 
 
@@ -55,6 +74,17 @@ def get_threshold(image):
 
 
 def get_edge(gray_img):
+    ''' Sobel Edge Detection
+    -----
+    Notes: 
+    Edge detection involves mathematical methods to find points in an image where the brightness of pixel intensities changes distinctly
+    -----
+    Param:
+        gray_image: input an image in gray scale
+    -----
+    Return:
+        img_sobel:  an image in np.array that has been edge detected through sobel
+    '''
     img_sobelx = cv2.Sobel(gray_img, -1, 1, 0, ksize=1)
     img_sobely = cv2.Sobel(gray_img, -1, 0, 1, ksize=1)
     img_sobel = cv2.addWeighted(img_sobelx, 0.5, img_sobely, 0.5, 0)
@@ -122,6 +152,20 @@ def get_structural_simlarity(first_image, second_image):
 
 
 def preprocess_image(image, gray=True, contrast=False, blur=False, edge=False):
+    ''' Pre-process Image
+    -----
+    Notes: 
+    Provide methods to prepare image for further examination
+    -----
+    Param:
+        gray:       Get the image in gray scale
+        contrast:   Adjust image's contrast
+        blur:       Blur image
+        edge:       Showing edges instead of full details
+    -----
+    Return:
+        image:      Processed image
+    '''
     if gray:
         image = convert_to_gray(image)
     # show_image("Gray", gray)
