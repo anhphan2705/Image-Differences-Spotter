@@ -1,4 +1,4 @@
-# Image Processing and Comparison
+# Image Differences Spotter
 
 This code demonstrates image processing and comparison using the scikit-image and OpenCV libraries. It allows you to preprocess images, calculate structural similarity, and visualize the differences between two images.
 
