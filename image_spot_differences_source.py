@@ -148,7 +148,7 @@ def get_structural_simlarity(first_image, second_image):
     # Convert return format to cv2 readable
     diff_img = convert_to_cv2_format(diff_img)
     print("[Console] Similarity score of {:.4f}%".format(score * 100))
-    return diff_img
+    return score, diff_img
 
 
 def preprocess_image(image, gray=True, contrast=False, blur=False, edge=False):
@@ -217,7 +217,7 @@ second_pre = preprocess_image(
 )
 
 # Compare and get the result
-diff_img = get_structural_simlarity(first_pre, second_pre)
+score, diff_img = get_structural_simlarity(first_pre, second_pre)
 
 # Marking the differences
 first_rect = get_diff_rect(first_img, diff_img, 750)
