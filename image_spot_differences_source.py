@@ -200,7 +200,8 @@ if first_img.shape != second_img.shape:
 
 # Preprocess the image before comparing
 # Main step for the accuracy of the program
-# Only use the methods that are needed for the processing images, otherwise comment out
+# Only set True for the methods that are needed for the processing images, otherwise False
+# Remember for process both image the same
 first_pre = preprocess_image(
     first_img, 
     gray=True, 
