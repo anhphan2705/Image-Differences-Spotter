@@ -7,86 +7,155 @@ from skimage.exposure import equalize_adapthist
 import cv2
 import numpy as np
 
-
 app = FastAPI()
 
 
 def convert_byte_to_arr(byte_image):
-    print("[Console] Converting image from byte to np.arr")
-    arr_image = np.array(Image.open(BytesIO(byte_image)))
+    """
+    Converts an image from byte array format to a NumPy array.
+
+    Args:
+        byte_image (bytes): Byte array representing the image.
+
+    Returns:
+        numpy.ndarray: Image in NumPy array format.
+    """
+    # Convert byte array to PIL Image
+    image = Image.open(BytesIO(byte_image))
+    # Convert PIL Image to NumPy array
+    arr_image = np.array(image)
     return arr_image
 
 
 def convert_arr_to_byte(arr_image):
-    print("[Console] Converting image from np.arr to byte")
+    """
+    Converts an image from NumPy array format to a byte array.
+
+    Args:
+        arr_image (numpy.ndarray): Image in NumPy array format.
+
+    Returns:
+        bytes: Byte array representing the image.
+
+    Raises:
+        Exception: If the conversion fails.
+    """
+    # Convert RGB image to BGR format
     arr_image_cvt = cv2.cvtColor(arr_image, cv2.COLOR_RGB2BGR)
+    # Encode the image as JPEG format
     success, byte_image = cv2.imencode(".jpg", arr_image_cvt)
     if success:
         return byte_image.tobytes()
     else:
-        raise Exception("[Console] Cannot convert array image to byte image")
+        raise Exception("Cannot convert array image to byte image")
 
 
 def get_image(directory):
-    print("[Console] Getting image")
+    """
+    Reads an image file from the specified directory.
+
+    Args:
+        directory (str): Directory path of the image file.
+
+    Returns:
+        numpy.ndarray: Image in NumPy array format.
+    """
     return cv2.imread(directory)
 
 
 def show_image(header, image):
-    print("[Console] Showing image")
+    """
+    Displays an image using OpenCV's imshow function.
+
+    Args:
+        header (str): Window title/header for the image.
+        image (numpy.ndarray): Image to be displayed.
+    """
     cv2.imshow(header, image)
     cv2.waitKey()
 
 
 def write_image(directory, image):
-    print("[Console] Saving image")
+    """
+    Saves an image to the specified directory.
+
+    Args:
+        directory (str): Directory path to save the image.
+        image (numpy.ndarray): Image to be saved.
+    """
     cv2.imwrite(directory, image)
 
 
 def resize_image(image, height, width):
-    print("[Console] Resizing image to 720p")
+    """
+    Resizes an image to the specified height and width.
+
+    Args:
+        image (numpy.ndarray): Image to be resized.
+        height (int): Desired height of the image.
+        width (int): Desired width of the image.
+
+    Returns:
+        tuple: A tuple containing the new dimensions and the resized image as a NumPy array.
+    """
     dim = (height, width)
-    return dim, cv2.resize(image, dim, interpolation=cv2.INTER_AREA)
+    resized_image = cv2.resize(image, dim, interpolation=cv2.INTER_AREA)
+    return dim, resized_image
 
 
 def convert_to_gray(image):
-    """Convert from BGR to GRAY"""
+    """
+    Converts an image from BGR to grayscale.
+
+    Args:
+        image (numpy.ndarray): Image to be converted.
+
+    Returns:
+        numpy.ndarray: Grayscale image.
+    """
     return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
 
 def convert_to_cv2_format(image):
-    """Convert any dtype back to cv2 readable image array"""
+    """
+    Converts any image dtype back to a CV2-readable image array.
+
+    Args:
+        image (numpy.ndarray): Image to be converted.
+
+    Returns:
+        numpy.ndarray: Converted image as a CV2-readable image array.
+    """
     image = (image * 255).astype("uint8")
     return image
 
 
 def get_blur(image, d=30, sigColor=80, sigSpace=80):
-    """Bilateral Filter Blur
-    -----
-    Notes:
-    Blur unimportant details and leave the edges
-    -----
-    Param: Adjust if needed
-        image:      Input image
-        d:          Diameter of each pixel neighborhood.
-        sigColor:   Value of sigma in the color space. The greater the value, the colors farther to each other will start to get mixed.
-        sigSpace:   Value of sigma in the coordinate space. The greater its value, the more further pixels will mix together, given that their colors lie within the sigmaColor range.
+    """
+    Applies a bilateral filter blur to an image.
+
+    Args:
+        image (numpy.ndarray): Image to be blurred.
+        d (int): Diameter of each pixel neighborhood.
+        sigColor (float): Value of sigma in the color space.
+        sigSpace (float): Value of sigma in the coordinate space.
+
+    Returns:
+        numpy.ndarray: Blurred image.
     """
     return cv2.bilateralFilter(image, d, sigColor, sigSpace)
 
 
 def get_equalize_adapt(image, c_limit=0.1):
-    """Contrast Limited Adaptive Histogram Equalization (CLAHE)
-    -----
-    Notes:
-    An algorithm for local contrast enhancement, that uses histograms computed over different tile regions of the image. Local details can therefore be enhanced even in regions that are darker or lighter than most of the image.
-    -----
-    Param:
-        image:      input image
-        c_limit:    Clipping limit, normalized between 0 and 1 (higher values give more contrast).
-    -----
-    Return
-        equalized:  an image that has it contrast adjusted
+    """
+    Applies contrast limited adaptive histogram equalization (CLAHE) to an image.
+
+    Args:
+        image (numpy.ndarray): Input image.
+        c_limit (float): Clipping limit, normalized between 0 and 1.
+
+    Returns:
+        numpy.ndarray: Image with adjusted contrast.
     """
     equalized = equalize_adapthist(
         image, kernel_size=None, clip_limit=c_limit, nbins=256
@@ -95,20 +164,27 @@ def get_equalize_adapt(image, c_limit=0.1):
 
 
 def get_threshold(image):
+    """
+    Applies thresholding to an image.
+
+    Args:
+        image (numpy.ndarray): Input image.
+
+    Returns:
+        numpy.ndarray: Thresholded image.
+    """
     return cv2.threshold(image, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
 
 
 def get_edge(gray_img):
-    """Sobel Edge Detection
-    -----
-    Notes:
-    Edge detection involves mathematical methods to find points in an image where the brightness of pixel intensities changes distinctly
-    -----
-    Param:
-        gray_image: input an image in gray scale
-    -----
-    Return:
-        img_sobel:  an image in np.array that has been edge detected through sobel
+    """
+    Detects edges in a grayscale image using Sobel edge detection.
+
+    Args:
+        gray_img (numpy.ndarray): Grayscale image.
+
+    Returns:
+        numpy.ndarray: Image with detected edges.
     """
     img_sobelx = cv2.Sobel(gray_img, -1, 1, 0, ksize=1)
     img_sobely = cv2.Sobel(gray_img, -1, 0, 1, ksize=1)
@@ -117,7 +193,15 @@ def get_edge(gray_img):
 
 
 def get_contours(image):
-    print("[Console] Finding contours")
+    """
+    Finds contours in a binary image.
+
+    Args:
+        image (numpy.ndarray): Binary image.
+
+    Returns:
+        list: List of contours found in the image.
+    """
     threshold_img = get_threshold(image)
     contours = cv2.findContours(
         threshold_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
@@ -127,94 +211,114 @@ def get_contours(image):
 
 
 def get_diff_mask(image, diff_image, minDiffArea):
+    """
+    Generates a mask indicating the differences between two images.
+
+    Args:
+        image (numpy.ndarray): Original image.
+        diff_image (numpy.ndarray): Image showing the differences.
+        minDiffArea (int): Minimum area of a difference to be considered.
+
+    Returns:
+        numpy.ndarray: Mask indicating the differences between the images.
+    """
     mask = np.zeros(image.shape, dtype="uint8")
     contours = get_contours(diff_image)
-    # Multiple objects in a contours
     for c in contours:
         area = cv2.contourArea(c)
-        # For any object that has a contour area > minDiffArea (40 pixel for smaller details)
         if area > minDiffArea:
-            # Mark it
             cv2.drawContours(mask, [c], 0, (255, 255, 255), -1)
     return mask
 
 
 def get_diff_rect(image, diff_image, minDiffArea):
-    print("[Console] Drawing rectangle around the differences")
+    """
+    Draws rectangles around the differences between two images.
+
+    Args:
+        image (numpy.ndarray): Original image.
+        diff_image (numpy.ndarray): Image showing the differences.
+        minDiffArea (int): Minimum area of a difference to be considered.
+
+    Returns:
+        numpy.ndarray: Image with rectangles drawn around the differences.
+    """
     img = image.copy()
     contours = get_contours(diff_image)
-    # Multiple objects in a contours
     for c in contours:
         area = cv2.contourArea(c)
-        # For any object that has a contour area > minDiffArea (40 pixel for smaller details)
         if area > minDiffArea:
-            # Mark it
             x, y, w, h = cv2.boundingRect(c)
             cv2.rectangle(img, (x, y), (x + w, y + h), (36, 255, 12), 2)
     return img
 
 
 def get_diff_filled(image, diff_image, minDiffArea):
+    """
+    Fills the differences between two images with green color.
+
+    Args:
+        image (numpy.ndarray): Original image.
+        diff_image (numpy.ndarray): Image showing the differences.
+        minDiffArea (int): Minimum area of a difference to be considered.
+
+    Returns:
+        numpy.ndarray: Image with differences filled with green color.
+    """
     contours = get_contours(diff_image)
-    # Multiple objects in a contours
     for c in contours:
         area = cv2.contourArea(c)
-        # For any object that has a contour area > minDiffArea (40 pixel for smaller details)
         if area > minDiffArea:
-            # Mark it
             cv2.drawContours(image, [c], 0, (0, 255, 0), -1)
     return image
 
 
 def get_structural_simlarity(first_image, second_image):
-    print("[Console] Calculating differences")
-    # Compare
+    """
+    Calculates the structural similarity between two images.
+
+    Args:
+        first_image (numpy.ndarray): First image.
+        second_image (numpy.ndarray): Second image.
+
+    Returns:
+        tuple: A tuple containing the similarity score and the difference image.
+    """
     (score, diff_img) = structural_similarity(first_image, second_image, full=True)
-    # Convert return format to cv2 readable
     diff_img = convert_to_cv2_format(diff_img)
-    print("[Console] Similarity score of {:.4f}%".format(score * 100))
     return score, diff_img
 
 
 def preprocess_image(image, gray=True, contrast=False, blur=False, edge=False):
-    """Pre-process Image
-    -----
-    Notes:
-    Provide methods to prepare image for further examination
-    -----
-    Param:
-        gray:       Get the image in gray scale
-        contrast:   Adjust image's contrast
-        blur:       Blur image
-        edge:       Showing edges instead of full details
-    -----
-    Return:
-        image:      Processed image
+    """
+    Preprocesses an image by applying various image processing techniques.
+
+    Args:
+        image (numpy.ndarray): Image to be preprocessed.
+        gray (bool): Convert the image to grayscale.
+        contrast (bool): Adjust the image's contrast.
+        blur (bool): Blur the image.
+        edge (bool): Show edges instead of full details.
+
+    Returns:
+        numpy.ndarray: Preprocessed image.
     """
     if gray:
         image = convert_to_gray(image)
-    # show_image("Gray", gray)
     if contrast:
-        image = get_equalize_adapt(
-            image
-        )  # Optional. Adjust contrast level through skimage.exposure.equalize_adapthist
-    # show_image("Adjust Contrast", gray)
+        image = get_equalize_adapt(image)
     if blur:
-        image = get_blur(
-            image
-        )  # Optional. Bilateral Filter Blur for edge detect purpose
-    # show_image("Blur", gray)
+        image = get_blur(image)
     if edge:
-        image = get_edge(
-            image
-        )  # Optional. Detect different object through shape mainly, less dependent on color and noise
-    # show_image("Edge", gray)
+        image = get_edge(image)
     return image
 
 
-# API
 @app.get("/")
 def welcome_page():
+    """
+    Serves the root route ("/") and displays a welcome message with a link to the API documentation.
+    """
     return HTMLResponse(
         """
         <h1>Welcome to Banana</h1>
@@ -228,7 +332,15 @@ def welcome_page():
 
 @app.post("/find_differences")
 async def find_differences(in_images: list[UploadFile]):
-    # Add images
+    """
+    Compares two uploaded images and finds the differences between them.
+
+    Args:
+        in_images (list[UploadFile]): List of uploaded images.
+
+    Returns:
+        Response: HTTP response containing the difference image and a response header with the similarity score.
+    """
     images = []
     for in_image in in_images:
         byte_image = await in_image.read()
@@ -236,43 +348,32 @@ async def find_differences(in_images: list[UploadFile]):
         images.append(arr_image)
         if len(images) == 2:
             break
-    # Main
-    # Get Image
+
     first_img = images[0]
     second_img = images[1]
 
-    # Resize image if there is a difference in size
-    # Modify this if needed
     if first_img.shape != second_img.shape:
         first_img = resize_image(first_img, 1280, 720)[1]
         second_img = resize_image(second_img, 1280, 720)[1]
 
-    # Preprocess the image before comparing
-    # Main step for the accuracy of the program
-    # Only use the methods that are needed for the processing images, otherwise comment out
     first_pre = preprocess_image(
         first_img, gray=True, contrast=True, blur=True, edge=True
     )
     second_pre = preprocess_image(
         second_img, gray=True, contrast=True, blur=True, edge=True
     )
-    # Compare and get the result
+
     score, diff_img = get_structural_simlarity(first_pre, second_pre)
-    # Marking the differences
     filled_img = get_diff_filled(second_img, diff_img, 750)
 
-    # Show response
     byte_image = convert_arr_to_byte(filled_img)
 
-    # Create the text response
     response_text = "Similarity score of {:.4f}%".format(score * 100)
 
-    # Create a response object with the image and text
     response = Response(content=byte_image, media_type="image/jpg")
     response.headers["Result"] = response_text
 
     return response
-    # return Response(byte_image, media_type="image/jpg")
 
 
 if __name__ == "__main__":
