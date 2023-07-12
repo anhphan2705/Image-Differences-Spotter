@@ -7,25 +7,29 @@ This code demonstrates image processing and comparison using the scikit-image an
 - Python 3.x
 - Required libraries: scikit-image, OpenCV
 
-## Usage
+## Installation
 
-1. Install the required libraries by running the following command:
+1. Clone the repository or download the script files.
+
+2. Install the required dependencies by running the following command:
 
    ```
    pip install scikit-image opencv-python
    ```
 
-2. Place the images you want to compare in the `images` directory. The example assumes the images are named `1.jpg` and `2.jpg`.
+## Usage
 
-3. Adjust the code as needed. You can modify the image directory, resize dimensions, and preprocessing options to fit your requirements.
+1. Place the images you want to compare in the `images` directory. The example assumes the images are named `1.jpg` and `2.jpg`.
 
-4. Run the script and observe the results. It will display the original images, the differences between them, and the marked regions where differences are detected.
+2. Adjust the code as needed. You can modify the image directory, resize dimensions, and preprocessing options to fit your requirements.
+
+3. Run the script and observe the results. It will display the original images, the differences between them, and the marked regions where differences are detected.
 
    ```
    python ./image_spot_differences_source.py
    ```
 
-5. Optionally, you can uncomment the `write_image` lines to save the output images to the `output` directory.
+4. Optionally, you can uncomment the `write_image` lines to save the output images to the `output` directory.
 
 ## Code Structure
 
@@ -61,4 +65,3 @@ This code is licensed under the [MIT License](LICENSE).
 - The scikit-image library: https://scikit-image.org/
 - OpenCV: https://opencv.org/
 
-Feel free to customize this README file to fit your specific use case and provide any additional information that may be helpful for users of your code.
