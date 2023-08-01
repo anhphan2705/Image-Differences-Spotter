@@ -78,7 +78,7 @@ def convert_to_cv2_format(image):
     Converts an image with any data type to a format readable by OpenCV (BGR, uint8).
 
     Parameters:
-        image (numpy.ndarray): The input image with any data type.
+        image (SSIM image): The input image with any data type
 
     Returns:
         numpy.ndarray: The image converted to OpenCV readable format (BGR, uint8).
@@ -265,22 +265,26 @@ def preprocess_image(image, gray=True, contrast=False, blur=False, edge=False):
     '''
     if gray:
         image = convert_to_gray(image)
-    # show_image("Gray", gray)
+    # show_image("Gray", image)
+    # write_image("./gray.jpg", image)
     if contrast:
         image = get_equalize_adapt(
             image
         )  # Optional. Adjust contrast level through skimage.exposure.equalize_adapthist
-    # show_image("Adjust Contrast", gray)
+    # show_image("Adjust Contrast", image)
+    # write_image("./equal.jpg", image)
     if blur:
         image = get_blur(
             image
         )  # Optional. Bilateral Filter Blur for edge detect purpose
-    # show_image("Blur", gray)
+    # show_image("Blur", image)
+    # write_image("./blur.jpg", image)
     if edge:
         image = get_edge(
             image
         )  # Optional. Detect different object through shape mainly, less dependent on color and noise
-    # show_image("Edge", gray)
+    # show_image("Edge", image)
+    # write_image("./edge.jpg", image)
     return image
 
 
